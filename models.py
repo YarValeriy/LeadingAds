@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime, Numeric, ARRAY
+from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime, Numeric, ARRAY, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -23,17 +23,15 @@ class Users(Base):
     updated_at = Column(DateTime)
 
 
-class Transactions(Base):
-    __tablename__ = "transactions"
+class Card(Base):
+    __tablename__ = "cards"
 
-    transaction_id = Column(Integer, primary_key=True)
-    transaction_token = Column(Integer, unique=True)
-    card_id = Column(Integer)
+    card_id = Column(Integer, primary_key=True)
     alias = Column(String)
     account_number = Column(String)
-    wallet_id = Column(String)
-    provider_id = Column(String)
-    user_id = Column(String)
+    wallet_id = Column(String, ForeignKey("wallets.wallet_id"))
+    provider_id = Column(String, ForeignKey("provider.provider_id"))
+    user_id = Column(String, ForeignKey("users.user_id"))
     status = Column(String(20))
     active = Column(Boolean)
     velocity_limit_window = Column(Enum("Day", "Week", "Month", "Lifetime"))
@@ -80,3 +78,22 @@ class Provider(Base):
     low_balance_trigger = Column(Numeric)
     low_spendable_balance_trigger = Column(Numeric)
     bin_set = Column(ARRAY(String))
+
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    transaction_id = Column(Integer, primary_key=True)
+    transaction_token = Column(Integer, unique=True)
+    card_id = Column(Integer, ForeignKey("cards.card_id"))
+    wallet_id = Column(String, ForeignKey("wallets.wallet_id"))
+    provider_id = Column(String, ForeignKey("provider.provider_id"))
+    user_id = Column(String, ForeignKey("users.user_id"))
+    available_balance = Column(Numeric)
+    total_balance = Column(Numeric)
+    mcc = Column(String(20))
+    amount = Column(Numeric(10, 2))
+    currency = Column(String(3))
+    status = Column(String(20))
+    transaction_date = Column(DateTime)
+    updated_at = Column(DateTime)
